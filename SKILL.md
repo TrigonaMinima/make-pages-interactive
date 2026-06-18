@@ -68,9 +68,9 @@ When a new batch arrives in `inbox.jsonl`:
   ```
 - The page polls `history.json`, sees the new batch, auto-reloads (scroll position preserved), and offers the user a walkthrough of the changes. The "processing…" banner clears automatically when any `in_response_to` matches a submitted comment id.
 
-### Optional: post in-flight status while you work
+### Post in-flight status while you work
 
-If a comment is going to take more than a few seconds (downstream skill invocation, browser automation, web search), POST a short status string so the user sees what you're doing instead of just a generic spinner:
+When you receive feedback and start working, POST a short status string so the user sees what you're doing instead of just a generic spinner:
 
 ```
 POST /status
