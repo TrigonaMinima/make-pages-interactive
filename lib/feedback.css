@@ -315,14 +315,16 @@
   color: #999;
   font-size: 11px;
 }
-.cf-comment-delete {
+.cf-comment-actions { display: flex; gap: 10px; align-items: center; }
+.cf-comment-edit, .cf-comment-delete {
   background: transparent;
   border: none;
-  color: #b00020;
   cursor: pointer;
   font-size: 11px;
 }
-.cf-comment-delete:hover { text-decoration: underline; }
+.cf-comment-edit:hover, .cf-comment-delete:hover { text-decoration: underline; }
+.cf-comment-edit { color: #0a66c2; }
+.cf-comment-delete { color: #b00020; }
 
 .cf-panel-actions {
   display: flex;
