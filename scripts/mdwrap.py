@@ -34,7 +34,7 @@ def _wrapper_html(md_name: str) -> str:
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="/lib/markdown.css">
   {CSS_TAG}
-  <script src="/lib/marked.min.js" defer></script>
+  <script id="cf-marked-script" src="/lib/marked.min.js" defer></script>
 </head>
 <body>
   <main class="markdown-page">
@@ -44,13 +44,24 @@ def _wrapper_html(md_name: str) -> str:
     window.CF_MARKDOWN_SRC = {repr(md_name)};
     (function () {{
       var root = document.getElementById("cf-md-root");
-      fetch(window.CF_MARKDOWN_SRC)
-        .then(function (r) {{
+      // marked.min.js loads with `defer` so it doesn't block parsing, but that
+      // only guarantees it runs before DOMContentLoaded -- not before this
+      // fetch resolves. Wait for the script's own load event too, so a fast
+      // local .md fetch can't call marked.parse() before `marked` exists.
+      var markedReady = window.marked
+        ? Promise.resolve()
+        : new Promise(function (resolve) {{
+            document.getElementById("cf-marked-script").addEventListener("load", resolve);
+          }});
+      Promise.all([
+        fetch(window.CF_MARKDOWN_SRC).then(function (r) {{
           if (!r.ok) throw new Error("Failed to load " + window.CF_MARKDOWN_SRC + ": " + r.status);
           return r.text();
-        }})
-        .then(function (src) {{
-          root.innerHTML = marked.parse(src);
+        }}),
+        markedReady,
+      ])
+        .then(function (results) {{
+          root.innerHTML = marked.parse(results[0]);
           var s = document.createElement("script");
           s.src = "/lib/feedback.js";
           s.defer = true;
