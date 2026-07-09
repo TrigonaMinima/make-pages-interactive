@@ -50,6 +50,7 @@ Plus glue:
 | `SKILL.md` | What Claude Code reads to know when and how to invoke the skill. |
 | `scripts/inject.py` | Idempotently injects (or removes) the two `<link>`/`<script>` tags in every `*.html` in a directory. |
 | `scripts/mdwrap.py` | Generates (or removes) a marker-guarded HTML wrapper for each `*.md` file that fetches and renders the markdown client-side. |
+| `scripts/_common.py` | Shared constants and helpers (`ensure_feedback_dir`, `find_files`, CSS tag, mdwrap marker) used by both `inject.py` and `mdwrap.py`. |
 | `scripts/update.py` | `git pull --ff-only` inside the skill directory. |
 
 ---
@@ -154,6 +155,8 @@ The library supports three commenting modes:
 
 Each comment carries a stable `cf_id`, a selector describing what was pointed at, the comment body, and a timestamp. The library batches comments client-side and submits as a single POST so Claude responds to a coherent set rather than firing on every keystroke.
 
+Any pending comment (before you submit the batch) can be edited in place. Click **edit** to reopen the same text/element/page selection with the comment box pre-filled, change the wording, and save. The selection or anchor never changes; only the comment text does.
+
 ---
 
 ## When Claude responds
@@ -183,6 +186,7 @@ make-pages-interactive/
 │   ├── markdown.css      # document theme for .md-rendered pages
 │   └── server.py         # stdlib-only HTTP server
 └── scripts/
+    ├── _common.py        # shared helpers for inject.py/mdwrap.py
     ├── inject.py         # HTML: inject / remove feedback tags
     ├── mdwrap.py         # Markdown: generate / remove HTML wrappers
     └── update.py         # git pull --ff-only
