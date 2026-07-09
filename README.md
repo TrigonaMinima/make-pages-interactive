@@ -1,8 +1,8 @@
 # make-pages-interactive
 
-A Claude Code skill that turns any folder of static HTML pages into a **live commenting surface**. Highlight text, click an element, leave a note — the comment lands in a local inbox that Claude reads and responds to by editing the page. The page auto-reloads with a walkthrough of what changed.
+A Claude Code skill that turns any folder of static HTML **or Markdown** pages into a **live commenting surface**. Highlight text, click an element, leave a note — the comment lands in a local inbox that Claude reads and responds to by editing the page. The page auto-reloads with a walkthrough of what changed.
 
-Originally built for iterating on research artifacts (long HTML reports with plots, tables, explanations) but works for any folder of HTML: docs, design mocks, generated reports, prototype UIs.
+Originally built for iterating on research artifacts (long HTML reports with plots, tables, explanations) but works for any folder of HTML or `.md` files: docs, design mocks, generated reports, prototype UIs.
 
 ![Screenshot of make-pages-interactive in action](screenshot.png)
 
@@ -28,18 +28,20 @@ Originally built for iterating on research artifacts (long HTML reports with plo
                                                       ▼
                                           ┌────────────────────────┐
                                           │  Claude (the agent)    │
-                                          │  edits HTML, appends   │
-                                          │  feedback/history.json │
+                                          │  edits HTML/.md,       │
+                                          │  appends history.json  │
                                           └────────────────────────┘
 ```
 
-The skill is **just three pieces**:
+The skill is **just a few pieces**:
 
 | File | Role |
 |------|------|
 | `lib/feedback.js` | Client library injected into every page. Handles text selection, element selection, comment editor, page-reload walkthrough. |
 | `lib/feedback.css` | Styles for the comment UI. |
-| `lib/server.py` | ~250-line stdlib-only HTTP server. Serves the page directory, accepts comment POSTs, serves the lib/ files from `/lib/*`. Auto-shuts-down on parent death or 10 min of idle so it doesn't leak processes. |
+| `lib/server.py` | ~250-line stdlib-only HTTP server. Serves the page directory, accepts comment POSTs, serves the `lib/` files from `/lib/*`. Auto-shuts-down on parent death or 10 min of idle so it doesn't leak processes. |
+| `lib/marked.min.js` | Vendored markdown renderer (marked v15.0.12, MIT). Used by the `.md` wrapper pages. |
+| `lib/markdown.css` | Document theme for markdown-rendered pages (Lora + JetBrains Mono, warm ivory). |
 
 Plus glue:
 
@@ -47,6 +49,7 @@ Plus glue:
 |------|------|
 | `SKILL.md` | What Claude Code reads to know when and how to invoke the skill. |
 | `scripts/inject.py` | Idempotently injects (or removes) the two `<link>`/`<script>` tags in every `*.html` in a directory. |
+| `scripts/mdwrap.py` | Generates (or removes) a marker-guarded HTML wrapper for each `*.md` file that fetches and renders the markdown client-side. |
 | `scripts/update.py` | `git pull --ff-only` inside the skill directory. |
 
 ---
@@ -70,7 +73,7 @@ Or just say "update the make-pages-interactive skill" in Claude Code.
 
 ---
 
-## Usage
+## Usage — HTML pages
 
 Inside any Claude Code session, say:
 
@@ -89,7 +92,7 @@ Claude will:
 
 Open the URL. Comment away. Claude edits the page in response.
 
-### Removing the feedback layer
+### Removing the feedback layer (HTML)
 
 To get a clean static copy back (no `/lib/` dependencies in the HTML):
 
@@ -98,6 +101,32 @@ python ~/.claude/skills/make-pages-interactive/scripts/inject.py ./your-dir --re
 ```
 
 Or say "remove the feedback layer from these pages."
+
+---
+
+## Usage — Markdown pages
+
+Say:
+
+> "Make this markdown interactive." / "Add feedback to this .md."
+
+Claude will:
+
+1. Run `scripts/mdwrap.py` on the directory (or single `.md` file), generating a thin HTML wrapper for each `.md`. The wrapper fetches and renders the markdown via `marked.js`, then boots `feedback.js`.
+2. Create `feedback/inbox.jsonl` and `feedback/history.json`.
+3. Start the server and tell you the URL.
+
+**The `.md` file is the canonical artifact.** Claude edits it directly in response to comments. The `.md` on disk is the export — just open or copy it when you're done.
+
+For the change-tour, Claude wraps edited regions with inline `<span data-cf-change="ch-...">...</span>` tags inside the markdown (valid marked passthrough). These are stripped when you say you're done so the file ends up byte-clean.
+
+### Removing the feedback layer (Markdown)
+
+Deletes the generated wrappers (marker-guarded, so hand-written HTML files are safe):
+
+```bash
+python ~/.claude/skills/make-pages-interactive/scripts/mdwrap.py ./your-dir --remove
+```
 
 ---
 
@@ -112,8 +141,6 @@ The server is designed to never leak — three ways it goes away:
 3. **Manual stop**. Either:
    - Say "stop the feedback server" in your Claude Code session — Claude runs `lsof -ti:5050 | xargs kill` (adjust the port if you used a non-default one).
    - Or hit `Ctrl-C` in the terminal where the server is logging.
-
-You generally don't need to think about this. The auto-shutdowns mean abandoned servers self-clean — close your Claude window and within ~10 s the port is free again.
 
 ---
 
@@ -135,7 +162,7 @@ When you submit a batch:
 
 1. A "processing…" banner appears at the top of the page.
 2. Your tab title changes to `🔔 …` so you can see progress in a backgrounded tab.
-3. Claude edits the relevant HTML, appends an entry to `feedback/history.json` that maps your comment ids → the changes made.
+3. Claude edits the relevant HTML or `.md`, appends an entry to `feedback/history.json` that maps your comment ids to the changes made.
 4. The page polls `history.json` every ~4 seconds, notices the new entry, and auto-reloads — preserving your scroll position.
 5. Post-reload, a walkthrough appears highlighting each changed region with the title Claude gave it. Press `R` to dismiss; the changes stay in the history sidebar.
 
@@ -150,12 +177,15 @@ make-pages-interactive/
 ├── screenshot.png        # README screenshot
 ├── LICENSE
 ├── lib/
-│   ├── feedback.js
-│   ├── feedback.css
-│   └── server.py
+│   ├── feedback.js       # client library
+│   ├── feedback.css      # feedback UI styles
+│   ├── marked.min.js     # vendored markdown renderer (v15.0.12, MIT)
+│   ├── markdown.css      # document theme for .md-rendered pages
+│   └── server.py         # stdlib-only HTTP server
 └── scripts/
-    ├── inject.py
-    └── update.py
+    ├── inject.py         # HTML: inject / remove feedback tags
+    ├── mdwrap.py         # Markdown: generate / remove HTML wrappers
+    └── update.py         # git pull --ff-only
 ```
 
 ---
@@ -164,7 +194,7 @@ make-pages-interactive/
 
 I kept building long HTML research reports and wanting to leave inline notes on them — "expand this section", "this plot is misleading", "what about edge case X?" — without breaking out of the page to write a separate to-do list. This skill turns that into a one-liner: every page is now a place I can scribble on, and Claude turns the scribbles into edits.
 
-The same workflow works for design docs, generated dashboards, code walkthroughs, anything that lives as HTML.
+The same workflow works for Markdown documents, design docs, generated dashboards, code walkthroughs, anything that lives as HTML or `.md`.
 
 ---
 

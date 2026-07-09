@@ -1,0 +1,224 @@
+/*
+ * markdown.css — document theme for cf-mdwrap rendered pages
+ * Scoped entirely under .markdown-body; cannot collide with feedback UI styles.
+ *
+ * Aesthetic: editorial warmth. Lora (serif) for body, JetBrains Mono for code.
+ * Deep ink on warm ivory — a printed-page feel with generous measure.
+ *
+ * Lora/JetBrains Mono are loaded via <link> in the mdwrap.py wrapper head
+ * (not @import here) so the browser's preload scanner can fetch them
+ * concurrently with this stylesheet instead of after it.
+ */
+
+/* Page scaffold */
+.markdown-page {
+  min-height: 100vh;
+  background: #f5f2ec;
+  padding: 3rem 1rem;
+  box-sizing: border-box;
+}
+
+/* The rendered markdown container */
+.markdown-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 3rem 4rem;
+  background: #fffdf8;
+  border-radius: 4px;
+  box-shadow:
+    0 1px 3px rgba(60, 45, 20, 0.08),
+    0 4px 20px rgba(60, 45, 20, 0.06);
+  font-family: "Lora", Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.75;
+  color: #1c1612;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Typography ---------- */
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+  color: #111008;
+}
+
+.markdown-body h1 { font-size: 2em;   border-bottom: 2px solid #e6dfcf; padding-bottom: 0.3em; }
+.markdown-body h2 { font-size: 1.5em; border-bottom: 1px solid #e6dfcf; padding-bottom: 0.25em; }
+.markdown-body h3 { font-size: 1.2em; }
+.markdown-body h4 { font-size: 1em; font-style: italic; }
+
+.markdown-body h1:first-child,
+.markdown-body h2:first-child {
+  margin-top: 0;
+}
+
+.markdown-body p {
+  margin: 0 0 1.1em;
+}
+
+.markdown-body strong { font-weight: 600; }
+
+.markdown-body em { font-style: italic; }
+
+/* ---------- Links ---------- */
+
+.markdown-body a {
+  color: #7c4a1a;
+  text-decoration-color: #c9996e;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.markdown-body a:hover {
+  color: #4d2c0e;
+}
+
+/* ---------- Lists ---------- */
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0 0 1.1em;
+  padding-left: 1.8em;
+}
+
+.markdown-body li {
+  margin-bottom: 0.3em;
+}
+
+.markdown-body li > p {
+  margin: 0.3em 0;
+}
+
+.markdown-body ul { list-style: disc; }
+.markdown-body ul ul { list-style: circle; }
+
+/* ---------- Blockquote ---------- */
+
+.markdown-body blockquote {
+  margin: 1.5em 0;
+  padding: 0.75em 1.25em;
+  border-left: 4px solid #c9996e;
+  background: #faf5eb;
+  color: #4a3b27;
+  font-style: italic;
+  border-radius: 0 3px 3px 0;
+}
+
+.markdown-body blockquote p:last-child { margin-bottom: 0; }
+
+/* ---------- Code ---------- */
+
+.markdown-body code {
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+  font-size: 0.85em;
+  background: #f0ebe0;
+  color: #5c3d1a;
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  border: 1px solid #e0d8c8;
+}
+
+.markdown-body pre {
+  background: #1e1b16;
+  color: #e8dfc8;
+  border-radius: 6px;
+  padding: 1.2em 1.5em;
+  overflow-x: auto;
+  margin: 1.5em 0;
+  line-height: 1.55;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.markdown-body pre code {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font-size: 0.875em;
+}
+
+/* ---------- Tables ---------- */
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.95em;
+}
+
+.markdown-body th {
+  background: #f0ebe0;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.6em 0.9em;
+  border-bottom: 2px solid #d4c9b0;
+  color: #3a2c1a;
+}
+
+.markdown-body td {
+  padding: 0.55em 0.9em;
+  border-bottom: 1px solid #e6dfcf;
+  vertical-align: top;
+}
+
+.markdown-body tr:last-child td { border-bottom: none; }
+.markdown-body tr:nth-child(even) td { background: #faf7f0; }
+
+/* ---------- Horizontal rule ---------- */
+
+.markdown-body hr {
+  border: none;
+  border-top: 2px solid #e0d8c8;
+  margin: 2.5em 0;
+}
+
+/* ---------- Images ---------- */
+
+.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+  margin: 1.5em auto;
+}
+
+/* ---------- Change-tour highlight ---------- */
+/*
+ * data-cf-change anchors — written by the agent as inline <span> tags in the .md.
+ * Marked as active by feedback.js during the walkthrough tour.
+ */
+
+.markdown-body [data-cf-change] {
+  background: rgba(202, 153, 72, 0.18);
+  border-radius: 2px;
+  outline: 1.5px dashed #c9996e;
+  outline-offset: 1px;
+}
+
+.markdown-body .cf-change-active {
+  background: rgba(202, 153, 72, 0.38) !important;
+  outline: 2px solid #a86c28 !important;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 680px) {
+  .markdown-body {
+    padding: 1.5rem 1.25rem 3rem;
+    font-size: 16px;
+  }
+
+  .markdown-page {
+    padding: 1rem 0;
+  }
+}
